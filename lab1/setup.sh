@@ -8,7 +8,7 @@ g++ -o lab lab.o -lpthread
 
 chmod +x ./lab
 
-echo 'Starting programm execution...'
+echo 'Starting program execution...'
 echo '=================================================='
 echo ''
 
@@ -16,7 +16,7 @@ echo ''
 
 echo ''
 echo '=================================================='
-echo 'Programm finished!'
+echo 'Program finished!'
 
 echo ''
 echo 'Cleaning directory, deleting .o and executable...'
