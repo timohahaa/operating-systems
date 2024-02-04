@@ -44,7 +44,7 @@ void *proc2(void *args) {
 }
 
 int main() {
-    puts("Main programm started working...");
+    puts("Main program started working...");
 
     pthread_t id1;
     pthread_t id2;
@@ -59,7 +59,7 @@ int main() {
     pthread_create(&id1, NULL, proc1, &args1);
     pthread_create(&id2, NULL, proc2, &args2);
 
-    puts("Main programm is waiting for keyboard input...");
+    puts("Main program is waiting for keyboard input...");
     getchar();
     puts("Keyboard input received!");
 
@@ -69,6 +69,6 @@ int main() {
     pthread_join(id1, NULL);
     pthread_join(id2, NULL);
 
-    puts("Main programm finished working!");
+    puts("Main program finished working!");
     return 0;
 }

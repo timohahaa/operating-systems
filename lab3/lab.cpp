@@ -86,7 +86,7 @@ void *proc2(void *args) {
 }
 
 int main(int argc, char *argv[]) {
-    puts("Main programm started working...");
+    puts("Main program started working...");
     if (argc != 2) {
         puts("wrong number of arguments!");
         puts("specify a way to create a channel: 1, 2 or 3");
@@ -108,7 +108,7 @@ int main(int argc, char *argv[]) {
     pthread_create(&id1, NULL, proc1, &args1);
     pthread_create(&id2, NULL, proc2, &args2);
 
-    puts("Main programm is waiting for keyboard input...");
+    puts("Main program is waiting for keyboard input...");
     getchar();
     puts("Keyboard input received!");
 
@@ -120,6 +120,6 @@ int main(int argc, char *argv[]) {
 
     close(channel[0]);
     close(channel[1]);
-    puts("Main programm finished working!");
+    puts("Main program finished working!");
     return 0;
 }
