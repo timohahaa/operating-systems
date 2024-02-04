@@ -7,30 +7,30 @@
 #include <sys/time.h>
 #include <unistd.h>
 
-const int ENTER = 10;
 const char SYMBOL = '1';
 
 int main() {
     puts("Program 1 started working...");
-    // make getchar nonblocking
     fcntl(STDIN_FILENO, F_SETFL, O_NONBLOCK);
 
     const char *sem_name = "/amogus";
     FILE *file;
-    sem_t *sem = sem_open(sem_name, O_CREAT, (mode_t)0777, 0);
+    sem_t *sem = sem_open(sem_name, O_CREAT, (mode_t)0777, 1);
     file = fopen("./impostor.txt", "a+");
 
-    fd_set fds;
-    FD_SET(STDIN_FILENO, &fds);
-    timeval *timeout;
-    timeout->tv_sec = 0;
-    timeout->tv_usec = 0;
+    // fd_set fds;
+    // FD_SET(STDIN_FILENO, &fds);
+    // timeval timeout;
+    // timeout.tv_sec = 0;
+    // timeout.tv_usec = 0;
 
-    while (select(1, &fds, NULL, NULL, timeout) == 0) {
+    while (/*select(1, &fds, NULL, NULL, &timeout) == 0*/ getchar() != 10) {
+
         sem_wait(sem);
         for (int i = 0; i < 10; i++) {
             fprintf(file, "%c", SYMBOL);
             putchar(SYMBOL);
+            fflush(file);
             fflush(stdout);
             sleep(1);
         }
@@ -38,7 +38,7 @@ int main() {
 
         sleep(1);
 
-        if (select(1, &fds, NULL, NULL, timeout) == 0) {
+        if (/*select(1, &fds, NULL, NULL, &timeout) != 0*/ getchar() == 10) {
             break;
         } else {
             continue;
