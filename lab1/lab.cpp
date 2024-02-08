@@ -18,7 +18,6 @@ void *proc1(void *args) {
 
     puts("Thread 1 finished working!");
     pthread_exit((void *)7);
-    return 0;
 }
 
 void *proc2(void *args) {
@@ -32,7 +31,6 @@ void *proc2(void *args) {
 
     puts("Thread 2 finished working!");
     pthread_exit((void *)8);
-    return 0;
 }
 
 int main() {
@@ -47,7 +45,20 @@ int main() {
     args2.flag = 0;
     args2.symbol = '2';
 
-    pthread_create(&id1, NULL, proc1, &args1);
+    pthread_attr_t attr;
+    pthread_attr_init(&attr);
+
+    int err = pthread_attr_setstacksize(&attr, PTHREAD_STACK_MIN - 1000);
+
+    if (err != 0) {
+        perror("error creating thread: ");
+        return 1;
+    }
+    int ret = pthread_create(&id1, &attr, proc1, &args1);
+    if (ret != 0) {
+        perror("error creating thread: ");
+        return 1;
+    }
     pthread_create(&id2, NULL, proc2, &args2);
 
     puts("Main program is waiting for keyboard input...");

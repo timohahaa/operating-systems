@@ -6,8 +6,6 @@ g++ -c lab.cpp
 echo 'Linking...'
 g++ -o lab lab.o -lpthread
 
-chmod +x ./lab
-
 echo 'Starting program execution...'
 echo '=================================================='
 echo ''
