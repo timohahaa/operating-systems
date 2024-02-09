@@ -1,8 +1,10 @@
 #include <pthread.h>
+#include <semaphore.h>
 #include <stdio.h>
+#include <string.h>
 #include <unistd.h>
 
-pthread_mutex_t mut;
+sem_t sem;
 
 typedef struct {
     int flag;
@@ -13,22 +15,24 @@ void *proc1(void *args) {
     puts("Thread 1 started working...");
     thread_args *targs = (thread_args *)args;
     while (targs->flag == 0) {
+        timespec tp;
         while (1) {
-            int ret = pthread_mutex_trylock(&mut);
-            if (ret == 0) {
+            clock_gettime(CLOCK_REALTIME, &tp); // читаем текущее время
+            tp.tv_sec += 1; // планируем задержку в 1 сек
+            int ret = sem_timedwait(&sem, &tp); // проверяем
+            // состояние ресурса
+            if (ret == 0) { // ресурс свободен, можно захватывать
                 break;
             } else {
-                sleep(1);
+                // printf("error: %s\n", strerror(ret)); // ресурс занят,
             }
         }
-
         for (int i = 0; i < 10; i++) {
             putchar(targs->symbol);
             fflush(stdout);
             sleep(1);
         }
-
-        pthread_mutex_unlock(&mut);
+        sem_post(&sem);
 
         sleep(1);
     }
@@ -41,22 +45,24 @@ void *proc2(void *args) {
     puts("Thread 2 started working...");
     thread_args *targs = (thread_args *)args;
     while (targs->flag == 0) {
+        timespec tp;
         while (1) {
-            int ret = pthread_mutex_trylock(&mut);
-            if (ret == 0) {
+            clock_gettime(CLOCK_REALTIME, &tp); // читаем текущее время
+            tp.tv_sec += 1; // планируем задержку в 1 сек
+            int ret = sem_timedwait(&sem, &tp); // проверяем
+            // состояние ресурса
+            if (ret == 0) { // ресурс свободен, можно захватывать
                 break;
             } else {
-                sleep(1);
+                // printf("error: %s\n", strerror(ret)); // ресурс занят,
             }
         }
-
         for (int i = 0; i < 10; i++) {
             putchar(targs->symbol);
             fflush(stdout);
             sleep(1);
         }
-
-        pthread_mutex_unlock(&mut);
+        sem_post(&sem);
 
         sleep(1);
     }
@@ -66,9 +72,9 @@ void *proc2(void *args) {
 }
 
 int main() {
-    puts("Main programm started working...");
+    puts("Main program started working...");
 
-    pthread_mutex_init(&mut, NULL);
+    sem_init(&sem, 0, 1);
     pthread_t id1;
     pthread_t id2;
 
@@ -82,7 +88,7 @@ int main() {
     pthread_create(&id1, NULL, proc1, &args1);
     pthread_create(&id2, NULL, proc2, &args2);
 
-    puts("Main programm is waiting for keyboard input...");
+    puts("Main program is waiting for keyboard input...");
     getchar();
     puts("Keyboard input received!");
 
@@ -92,8 +98,8 @@ int main() {
     pthread_join(id1, NULL);
     pthread_join(id2, NULL);
 
-    pthread_mutex_destroy(&mut);
+    sem_destroy(&sem);
 
-    puts("Main programm finished working!");
+    puts("Main program finished working!");
     return 0;
 }
