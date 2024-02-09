@@ -2,7 +2,9 @@
 #include <pthread.h>
 #include <semaphore.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
+#include <sys/mman.h>
 #include <sys/select.h>
 #include <sys/stat.h>
 #include <sys/time.h>
@@ -10,16 +12,20 @@
 
 int flag = 0;
 sem_t *write_sem;
+const char *write_sem_name = "/write_sem";
 sem_t *read_sem;
+const char *read_sem_name = "/read_sem";
 int shmem_fd;
-void *local_addr;
+void *local_addr = malloc(1000);
 
 void *proc1(void *args) {
     puts("Thread 1 started working...");
     while (flag == 0) {
         int data = getdtablesize();
         printf("Result is: %d\n", data);
-        memcpy(local_addr, (void *)&data, sizeof(data));
+        puts("here1");
+        memcpy(local_addr, &data, sizeof(data));
+        puts("here2");
         fflush(stdout);
 
         sem_post(write_sem);
@@ -29,12 +35,19 @@ void *proc1(void *args) {
 
     puts("Thread 1 finished working!");
     pthread_exit((void *)7);
-    return 0;
 }
 
 int main() {
     puts("Main program 1 started working...");
     pthread_t id;
+
+    shmem_fd = shm_open("/amogus_memory", O_RDWR | O_CREAT, S_IRWXU);
+    // потому что записываем getdtablesize()
+    ftruncate(shmem_fd, 100);
+    local_addr = mmap(local_addr, 100, PROT_WRITE | PROT_READ,
+                      MAP_FIXED | MAP_SHARED, shmem_fd, 0);
+    write_sem = sem_open(write_sem_name, O_CREAT, (mode_t)0777, 1);
+    read_sem = sem_open(read_sem_name, O_CREAT, (mode_t)0777, 1);
 
     pthread_create(&id, NULL, proc1, NULL);
 
@@ -45,8 +58,16 @@ int main() {
     flag = 1;
 
     int ret = 0;
-
     pthread_join(id, (void **)&ret);
+
+    sem_close(write_sem);
+    sem_unlink(write_sem_name);
+    sem_close(read_sem);
+    sem_unlink(read_sem_name);
+
+    munmap(local_addr, 100);
+    close(shmem_fd);
+    shm_unlink("/amogus_memory");
 
     printf("Thread 1 returned: %d\n", ret);
 
