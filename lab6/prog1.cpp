@@ -23,9 +23,7 @@ void *proc1(void *args) {
     while (flag == 0) {
         int data = getdtablesize();
         printf("Result is: %d\n", data);
-        puts("here1");
         memcpy(local_addr, &data, sizeof(data));
-        puts("here2");
         fflush(stdout);
 
         sem_post(write_sem);
@@ -43,9 +41,9 @@ int main() {
 
     shmem_fd = shm_open("/amogus_memory", O_RDWR | O_CREAT, S_IRWXU);
     // потому что записываем getdtablesize()
-    ftruncate(shmem_fd, 100);
-    local_addr = mmap(local_addr, 100, PROT_WRITE | PROT_READ,
-                      MAP_FIXED | MAP_SHARED, shmem_fd, 0);
+    ftruncate(shmem_fd, sizeof(int));
+    local_addr = mmap(local_addr, sizeof(int), PROT_WRITE | PROT_READ,
+                      MAP_SHARED, shmem_fd, 0);
     write_sem = sem_open(write_sem_name, O_CREAT, (mode_t)0777, 1);
     read_sem = sem_open(read_sem_name, O_CREAT, (mode_t)0777, 1);
 

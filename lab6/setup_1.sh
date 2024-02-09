@@ -24,8 +24,5 @@ echo ''
 echo 'Cleaning directory, deleting .o and executable...'
 rm ./prog${PROG_NUM}.o
 rm ./prog${PROG_NUM}
-rm /dev/shm/amogus_memory
-rm /dev/shm/sem.read_sem
-rm /dev/shm/sem.write_sem
 
 echo 'Done!'
