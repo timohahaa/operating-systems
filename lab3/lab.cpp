@@ -2,9 +2,10 @@
 #include <pthread.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <unistd.h>
 
-const int MESSAGE_SIZE = 1000;
+const int MESSAGE_SIZE = sizeof(int) + 1;
 
 int channel[2];
 
@@ -30,13 +31,14 @@ void create_channel(int option) {
 }
 
 void clear_buffer(char buffer[MESSAGE_SIZE]) {
-    for (int i = 0; i < MESSAGE_SIZE; i++) {
-        buffer[i] = 0;
-    }
+    memset(buffer, 0, MESSAGE_SIZE);
+    // for (int i = 0; i < MESSAGE_SIZE; i++) {
+    //     buffer[i] = 0;
+    // }
 }
 
 void get_message(char msgBuffer[MESSAGE_SIZE], int data) {
-    sprintf(msgBuffer, "Descriptor table size is: %d\n", data);
+    sprintf(msgBuffer, "%d", data);
 }
 
 void *proc1(void *args) {
