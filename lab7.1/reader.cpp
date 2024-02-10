@@ -11,7 +11,7 @@
 #include <sys/time.h>
 #include <unistd.h>
 
-const int MESSAGE_SIZE = 100;
+const int MESSAGE_SIZE = sizeof(int) + 1;
 const char *fifo_path = "/tmp/amogus_fifo";
 int flag = 0;
 int fifo_fd;
@@ -28,18 +28,16 @@ void *proc(void *args) {
         clear_buffer(message_buffer);
         ssize_t ret = read(fifo_fd, message_buffer, MESSAGE_SIZE);
         if (ret == 0) {
-            puts("writer program is not available");
-            sleep(1);
+            // writer disconnected OR unavailable
+            puts("Writer program is not available");
+            puts("Press any key to exit");
         } else if (/*errno == EBADF*/ ret == -1) {
-            // writer disconnected
-            perror("err");
-            puts("Writer has disconnected");
-            puts("Press any key");
-            pthread_exit((void *)7);
+            puts("Writer has not written anything");
         } else {
             puts(message_buffer);
         }
         fflush(stdout);
+        sleep(1);
     }
     pthread_exit((void *)8);
 }

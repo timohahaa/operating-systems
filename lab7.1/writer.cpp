@@ -2,6 +2,7 @@
 #include <fcntl.h>
 #include <pthread.h>
 #include <semaphore.h>
+#include <signal.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -11,7 +12,7 @@
 #include <sys/time.h>
 #include <unistd.h>
 
-const int MESSAGE_SIZE = 100;
+const int MESSAGE_SIZE = sizeof(int) + 1;
 const char *fifo_path = "/tmp/amogus_fifo";
 pthread_t open_id;
 pthread_t write_id;
@@ -20,7 +21,7 @@ int write_thread_flag = 0;
 int fifo_fd;
 
 void get_message(char msgBuffer[MESSAGE_SIZE], int data) {
-    sprintf(msgBuffer, "Descriptor table size is: %d", data);
+    sprintf(msgBuffer, "%d", data);
 }
 
 void clear_buffer(char buffer[MESSAGE_SIZE]) {
@@ -43,9 +44,6 @@ void *write_thread(void *args) {
             // reader disconnected
             puts("Reader has disconnected");
             pthread_exit((void *)7);
-        } else {
-            puts("here");
-            printf("%d\n", ret);
         }
         sleep(1);
     }
@@ -67,8 +65,14 @@ void *open_thread(void *args) {
     pthread_exit((void *)8);
 }
 
+void sigpipe_handler(int signo) {
+    puts("Reader programm disconnected, exiting...");
+    exit(0);
+}
+
 int main() {
     puts("Writer program started working...");
+    signal(SIGPIPE, sigpipe_handler);
     mkfifo(fifo_path, S_IRWXU);
 
     pthread_create(&open_id, NULL, open_thread, NULL);
