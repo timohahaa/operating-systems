@@ -5,8 +5,6 @@
 #include <string.h>
 #include <unistd.h>
 
-const int MESSAGE_SIZE = sizeof(int) + 1;
-
 int channel[2];
 
 typedef struct {
@@ -30,27 +28,13 @@ void create_channel(int option) {
     }
 }
 
-void clear_buffer(char buffer[MESSAGE_SIZE]) {
-    memset(buffer, 0, MESSAGE_SIZE);
-    // for (int i = 0; i < MESSAGE_SIZE; i++) {
-    //     buffer[i] = 0;
-    // }
-}
-
-void get_message(char msgBuffer[MESSAGE_SIZE], int data) {
-    sprintf(msgBuffer, "%d", data);
-}
-
 void *proc1(void *args) {
     puts("Thread 1 started working...");
     thread_args *targs = (thread_args *)args;
 
-    char messageBuffer[MESSAGE_SIZE];
     while (targs->flag == 0) {
         int data = getdtablesize();
-        clear_buffer(messageBuffer);
-        get_message(messageBuffer, data);
-        ssize_t ret = write(channel[1], (void *)messageBuffer, MESSAGE_SIZE);
+        ssize_t ret = write(channel[1], (void *)&data, sizeof(int));
         if (ret == 0) {
             puts("End of file");
         } else if (ret == -1) {
@@ -69,17 +53,16 @@ void *proc2(void *args) {
     puts("Thread 2 started working...");
     thread_args *targs = (thread_args *)args;
 
-    char messageBuffer[MESSAGE_SIZE];
+    int msg = 0;
     while (targs->flag == 0) {
-        clear_buffer(messageBuffer);
-        ssize_t ret = read(channel[0], (void *)messageBuffer, MESSAGE_SIZE);
+        ssize_t ret = read(channel[0], (void *)&msg, sizeof(int));
         if (ret == 0) {
             puts("End of file");
         } else if (ret == -1) {
             perror("err");
         } else if (ret > 0) {
             puts("Message succesfully received:");
-            puts(messageBuffer);
+            printf("%d\n", msg);
         }
         sleep(1);
     }
