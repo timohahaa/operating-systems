@@ -18,13 +18,15 @@ int main() {
     sem_t *sem = sem_open(sem_name, O_CREAT, (mode_t)0777, 1);
     file = fopen("./impostor.txt", "a+");
 
-    // fd_set fds;
-    // FD_SET(STDIN_FILENO, &fds);
-    // timeval timeout;
-    // timeout.tv_sec = 0;
-    // timeout.tv_usec = 0;
+    fd_set fds;
+    timeval timeout;
 
-    while (/*select(1, &fds, NULL, NULL, &timeout) == 0*/ getchar() != 10) {
+    while (1) {
+        FD_ZERO(&fds);
+        FD_SET(0, &fds);
+
+        timeout.tv_sec = 1;
+        timeout.tv_usec = 0;
 
         sem_wait(sem);
         for (int i = 0; i < 10; i++) {
@@ -36,9 +38,8 @@ int main() {
         }
         sem_post(sem);
 
-        sleep(1);
-
-        if (/*select(1, &fds, NULL, NULL, &timeout) != 0*/ getchar() == 10) {
+        if (select(1, &fds, NULL, NULL, &timeout) > 0) {
+            printf("\nkey pressed\n");
             break;
         } else {
             continue;
