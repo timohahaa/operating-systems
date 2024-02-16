@@ -1,6 +1,7 @@
 #include <fcntl.h>
 #include <pthread.h>
 #include <semaphore.h>
+#include <signal.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -35,8 +36,22 @@ void *proc1(void *args) {
     pthread_exit((void *)7);
 }
 
+void sig_handler(int signo) {
+    printf("\nget SIGNINT; %d\n", signo);
+    sem_close(write_sem);
+    sem_unlink(write_sem_name);
+    sem_close(read_sem);
+    sem_unlink(read_sem_name);
+
+    munmap(local_addr, 100);
+    close(shmem_fd);
+    shm_unlink("/amogus_memory");
+    exit(0);
+}
+
 int main() {
     puts("Main program 1 started working...");
+    signal(SIGINT, sig_handler);
     pthread_t id;
 
     shmem_fd = shm_open("/amogus_memory", O_RDWR | O_CREAT, S_IRWXU);
@@ -44,8 +59,8 @@ int main() {
     ftruncate(shmem_fd, sizeof(int));
     local_addr = mmap(local_addr, sizeof(int), PROT_WRITE | PROT_READ,
                       MAP_SHARED, shmem_fd, 0);
-    write_sem = sem_open(write_sem_name, O_CREAT, (mode_t)0777, 1);
-    read_sem = sem_open(read_sem_name, O_CREAT, (mode_t)0777, 1);
+    write_sem = sem_open(write_sem_name, O_CREAT, (mode_t)0777, 0);
+    read_sem = sem_open(read_sem_name, O_CREAT, (mode_t)0777, 0);
 
     pthread_create(&id, NULL, proc1, NULL);
 
